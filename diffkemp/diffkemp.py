@@ -7,7 +7,10 @@ from diffkemp.llvm_ir.kernel_module import LlvmKernelModule
 from diffkemp.semdiff.module_diff import modules_diff
 from diffkemp.semdiff.result import Result
 import sys
+import __builtin__
 
+
+__builtin__.var_value = None
 
 def __make_argument_parser():
     """ Parsing arguments. """
@@ -52,6 +55,12 @@ def run_from_cli():
     ap = __make_argument_parser()
     args = ap.parse_args()
     check_args(args, ap)
+
+    if args.param:
+        indx = args.param.find(':')
+        if indx != -1:
+            __builtin__.var_value = args.param[indx+1:]
+            args.param = args.param[:indx]
 
     try:
         first_builder = LlvmKernelBuilder(args.src_version, args.modules_dir,

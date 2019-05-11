@@ -16,6 +16,7 @@ def add_suffix(file, suffix):
     name, ext = os.path.splitext(file)
     return "{}-{}{}".format(name, suffix, ext)
 
+#var_value = "-1"
 
 def simplify_modules_diff(first, second, fun_first, fun_second, var,
                           suffix=None, control_flow_only=False, verbose=False):
@@ -40,7 +41,10 @@ def simplify_modules_diff(first, second, fun_first, fun_second, var,
             simpll_command.append(fun_first)
         # Analysed variable
         if var:
-            simpll_command.extend(["--var", var])
+            if var_value is not None:
+                simpll_command.extend(["--var", var+':'+var_value])
+            else:
+                simpll_command.extend(["--var", var])
         # Suffix for output files
         if suffix:
             simpll_command.extend(["--suffix", suffix])
@@ -92,5 +96,7 @@ def simplify_modules_diff(first, second, fun_first, fun_second, var,
 
         return first_out, second_out, objects_to_compare, missing_defs, \
             macro_defs
-    except CalledProcessError:
+    except CalledProcessError as e:
+        if e.returncode == 10:
+            raise SimpLLException("Value of variable is incompatible type.")
         raise SimpLLException("Simplifying files failed")

@@ -28,11 +28,14 @@
 #include "passes/SimplifyKernelGlobalsPass.h"
 #include "passes/UnifyMemcpyPass.h"
 #include "passes/VarDependencySlicer.h"
+#include "passes/VarValueDependencySlicer.h"
 #include <llvm/IR/PassManager.h>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Transforms/IPO/AlwaysInliner.h>
 #include <llvm/Transforms/Scalar/DCE.h>
 #include <llvm/Transforms/Scalar/LowerExpectIntrinsic.h>
+#include <llvm/Transforms/Scalar/SimplifyCFG.h>
+#include <llvm/Transforms/Scalar/SCCP.h>
 
 /// Preprocessing functions run on each module at the beginning.
 /// The following transformations are applied:
@@ -49,7 +52,8 @@
 void preprocessModule(Module &Mod,
                       Function *Main,
                       GlobalVariable *Var,
-                      bool ControlFlowOnly) {
+                      bool ControlFlowOnly,
+                      std::string VarValue) {
     if (Var) {
         // Slicing of the program w.r.t. the value of a global variable
         PassManager<Function, FunctionAnalysisManager, GlobalVariable *> fpm;
@@ -59,6 +63,16 @@ void preprocessModule(Module &Mod,
 
         fpm.addPass(VarDependencySlicer {});
         fpm.run(*Main, fam, Var);
+
+        if(!VarValue.empty()){
+            PassManager<Module, ModuleAnalysisManager, GlobalVariable*,std::string> mpm;
+            ModuleAnalysisManager mam(false);
+            PassBuilder pb2;
+            pb2.registerModuleAnalyses(mam);
+
+            mpm.addPass(VarValueDependencySlicer {});
+            mpm.run(Mod, mam, Var, VarValue);
+        }
     }
 
     // Function passes
@@ -71,12 +85,15 @@ void preprocessModule(Module &Mod,
         fpm.addPass(ControlFlowSlicer {});
     fpm.addPass(SimplifyKernelFunctionCallsPass{});
     fpm.addPass(UnifyMemcpyPass {});
+    fpm.addPass(SCCPPass {});
     fpm.addPass(DCEPass {});
+    fpm.addPass(SimplifyCFGPass {});
     fpm.addPass(LowerExpectIntrinsicPass {});
     fpm.addPass(ReduceFunctionMetadataPass {});
 
     for (auto &Fun : Mod)
-        fpm.run(Fun, fam);
+        if(!Fun.empty())
+            fpm.run(Fun, fam);
 
     // Module passes
     ModulePassManager mpm(false);

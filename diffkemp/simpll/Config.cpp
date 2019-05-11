@@ -69,8 +69,21 @@ Config::Config() : First(parseIRFile(FirstFileOpt, err, context_first)),
     }
     if (!VariableOpt.empty()) {
         // Parse --var option - find global variables with given name.
-        FirstVar = First->getGlobalVariable(VariableOpt, true);
-        SecondVar = Second->getGlobalVariable(VariableOpt, true);
+        std::string varName, varValue;
+        std::string vopt = VariableOpt;
+        size_t varOptDelimiterIndex = vopt.find(":");
+        if(varOptDelimiterIndex == std::string::npos)
+            varName = vopt;
+        else{
+            varName = vopt.substr(0, varOptDelimiterIndex);
+            varValue = vopt.substr(varOptDelimiterIndex+1,vopt.size());
+            if(varValue.empty())
+                varValue = "default";
+        }
+        
+        FirstVar = First->getGlobalVariable(varName, true);
+        SecondVar = Second->getGlobalVariable(varName, true);
+        VarValue = varValue;
     }
     if (!SuffixOpt.empty()) {
         // Parse --suffix option - add suffix to the names of output files.

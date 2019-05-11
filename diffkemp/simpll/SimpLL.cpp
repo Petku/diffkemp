@@ -38,9 +38,9 @@ int main(int argc, const char **argv) {
 
     // Run transformations
     preprocessModule(*config.First, config.FirstFun, config.FirstVar,
-                     config.ControlFlowOnly);
+                     config.ControlFlowOnly, config.VarValue);
     preprocessModule(*config.Second, config.SecondFun, config.SecondVar,
-                     config.ControlFlowOnly);
+                     config.ControlFlowOnly, config.VarValue);
     config.refreshFunctions();
 
     std::vector<FunPair> nonequalFuns;

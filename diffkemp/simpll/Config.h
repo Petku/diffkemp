@@ -54,6 +54,7 @@ class Config {
     // Compared global variables
     GlobalVariable *FirstVar = nullptr;
     GlobalVariable *SecondVar = nullptr;
+    std::string VarValue;
     // Output files
     std::string FirstOutFile;
     std::string SecondOutFile;
