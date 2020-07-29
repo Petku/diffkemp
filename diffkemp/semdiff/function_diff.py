@@ -194,6 +194,7 @@ def functions_diff(mod_first, mod_second,
                                                         mod_first.llvm))
 
         simplify = True
+        dont_return_missing_defs = False
         while simplify:
             simplify = False
             if (prev_result_graph and
@@ -211,6 +212,7 @@ def functions_diff(mod_first, mod_second,
                         fun_first=fun_first, fun_second=fun_second,
                         var=glob_var.name if glob_var else None,
                         var_value=glob_var_value if glob_var_value else None,
+                        var_indices=glob_var.indices if glob_var else None,
                         suffix=glob_var.name if glob_var else "simpl",
                         cache_dir=function_cache.directory
                         if function_cache else None,
@@ -219,8 +221,10 @@ def functions_diff(mod_first, mod_second,
                         print_asm_diffs=config.print_asm_diffs,
                         verbose=config.verbosity,
                         use_ffi=config.use_ffi,
+                        no_missing_def=dont_return_missing_defs,
                         module_cache=module_cache
                     )
+
                 if missing_defs:
                     # If there are missing function definitions, try to find
                     # their implementation, link them to the current modules,
@@ -237,6 +241,9 @@ def functions_diff(mod_first, mod_second,
                                                 mod_second,
                                                 fun_pair["second"]):
                                 simplify = True
+                        if not curr_result_graph and simplify is False:
+                            simplify = True
+                            dont_return_missing_defs = True
                 if prev_result_graph and not simplify:
                     # Note: "curr_result_graph" is here the partial result
                     # graph, i.e. can contain unknown results that are known in

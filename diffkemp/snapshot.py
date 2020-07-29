@@ -27,10 +27,11 @@ class Snapshot:
         For sysctl option, glob_var is the data variable that the option sets.
         """
 
-        def __init__(self, mod, glob_var, glob_var_value, tag):
+        def __init__(self, mod, glob_var, glob_var_value, indices, tag):
             self.mod = mod
             self.glob_var = glob_var
             self.glob_var_value = glob_var_value
+            self.var_indices = indices
             self.tag = tag
 
     class FunctionGroup:
@@ -119,7 +120,7 @@ class Snapshot:
             snapshot_yaml.write(self.to_yaml())
 
     def add_fun(self, name, llvm_mod, glob_var=None, glob_var_value=None,
-                tag=None, group=None):
+                var_indices=None, tag=None, group=None):
         """
         Add function to the function list.
         :param name: Name of the function.
@@ -131,6 +132,7 @@ class Snapshot:
             llvm_mod,
             glob_var,
             glob_var_value,
+            var_indices,
             tag
         )
 
@@ -220,6 +222,7 @@ class Snapshot:
                     if f["llvm"] else None,
                     f["glob_var"],
                     f["glob_var_value"],
+                    f["glob_var_indices"],
                     f["tag"],
                     group
                 )
@@ -240,6 +243,7 @@ class Snapshot:
                 if fun_desc.mod else None,
                 "glob_var": fun_desc.glob_var,
                 "glob_var_value": fun_desc.glob_var_value,
+                "glob_var_indices": fun_desc.var_indices,
                 "tag": fun_desc.tag
             } for fun_name, fun_desc in g.functions.items()]
         } for group_name, g in self.fun_groups.items()
