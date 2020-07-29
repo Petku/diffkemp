@@ -85,6 +85,13 @@ once such as:
 Currently, these sysctl option groups are supported: `kernel.*`,
 `vm.*`, `fs.*`, `net.core.*`, `net.ipv4.conf.*`.
 
+### Comparing module parameters
+Apart from comparing specific functions, DiffKemp supports comparison of
+semantics of module parameters. List of the options to compare can be passed as the
+`FUNCTION_LIST` in the `generate` command. In such case, use `--module-parameters` switch
+to generate snapshot for module parameter comparison. The `compare` command is
+used in normal way.
+
 ## About
 The tool uses static analysis methods to automatically determine how the effect
 of a chosen kernel function or option (module parameter, sysctl) changed between
